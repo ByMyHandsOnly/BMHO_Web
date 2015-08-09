@@ -1,31 +1,22 @@
 <section id="breadcrumb">
 <font color="#FFFFFF">
 <?php 
-      if (empty($this->request->data['ProductCategory']['id'])) {
+      if (!isset($this->request->data['ProductCategory']['parent_id'])) {
    	   $breadcrumb = array(  __('Categories: '),
    	                         $this->Html->link(  __('All'), 
-   	                                             array('controller' => 'product_categories', 'action' => 'index', null, 'admin' => 'true' ),
+   	                                             array('controller' => 'product_categories', 'action' => 'index', '', 'admin' => 'true' ),
    	                                             array('class' => 'btn btn-warning btn-small') ));
          }
       else { 
-         if ( $this->request->data['ProductCategory']['id'] == 'e0caa174-2dfe-11e5-a7f8-7ce9d36ef50d' ) {          
     	   $breadcrumb = array(  __('Categories: '),
    	                         $this->Html->link(  __('All'), 
-    	                                             array('controller' => 'product_categories', 'action' => 'index', 'e0caa174-2dfe-11e5-a7f8-7ce9d36ef50d', 'admin' => 'true' ), 
-    	                                             array('class' => 'btn btn-warning btn-small') ),
-                               $this->Html->link( $this->request->data['ProductCategory']['name'], 
-                                                   array('controller' => 'product_categories', 'action' => 'index', $this->request->data['ProductCategory']['id'], 'admin' => 'true'), 
-                                                   array('class' => 'btn btn-warning btn-small') ) ); 
-            }
-      	else {
-      	
-    	   $breadcrumb = array(  __('Categories: '),
-   	                         $this->Html->link( __('All'), array('controller' => 'product_categories','action' => 'index', null, 'admin' => 'true' ), array('class' => 'btn btn-warning btn-small')),
-                               $this->Html->link( __('Top'), array('controller' => 'product_categories','action' => 'index', 'e0caa174-2dfe-11e5-a7f8-7ce9d36ef50d', 'admin' => 'true'), array('class' => 'btn btn-warning btn-small')), 
-    	                           __(' ... '),
-                               $this->Html->link( $this->request->data['ParentCategory']['name'], array('controller' => 'product_categories','action' => 'index', $this->request->data['ProductCategory']['parent_id'], 'admin' => 'true'), array('class' => 'btn btn-warning btn-small')),
-                               $this->Html->link( $this->request->data['ProductCategory']['name'], array('controller' => 'product_categories','action' => 'index', $this->request->data['ProductCategory']['id'], 'admin' => 'true'), array('class' => 'btn btn-warning btn-small')) ); 
-      	}
+   	                                             array('controller' => 'product_categories', 'action' => 'index', '', 'admin' => 'true' ),
+   	                                             array('class' => 'btn btn-small btn-warning') ),
+   	                         __('/'),
+                               $this->Html->link( __('Top'), array('controller' => 'product_categories','action' => 'index', null, 'admin' => 'true'), array('class' => 'btn btn-small btn-warning')), 
+    	                         ( !isset( $this->request->data['ParentCategory']['parent_id'] ) ) ? __('/') : __(' ... '),
+                               $this->Html->link( $productCategory['ParentCategory']['name'], array('controller' => 'product_categories','action' => 'index', $productCategory['ProductCategory']['parent_id'], 'admin' => 'true'), array('class' => 'btn btn-small btn-warning')),
+                               $this->Html->link( $productCategory['ProductCategory']['name'], array('controller' => 'product_categories','action' => 'index', $productCategory['ProductCategory']['id'], 'admin' => 'true'), array('class' => 'btn btn-small btn-warning')) ); 
    	}
       echo $this->Html->breadcrumb( $breadcrumb );
 ?>
@@ -37,33 +28,64 @@
       <hr />
          <div>
             <div class="pull-right">
-         		<?php echo $this->Form->input('ProductCategory.parent_id', array('label' => false, 'empty' => '-- All --', 'null' => '-- Top --', 'options'=>$parentCategories, 'selected' => $this->request->data['ProductCategory']['parent_id']) ); ?>
+<?php 
+               if (!isset($productCategory['ProductCategory']['parent_id']))
+         		   echo $this->Form->input('ProductCategory.parent_id', array('label' => null, 'empty' => '-- [All] --', 'null' => '-- Top --', 'options'=>$parents) );
+         	   else
+         		   echo $this->Form->input('ProductCategory.parent_id', array('label' => null, 'empty' => '-- [All] --', 'null' => '-- Top --', 'options'=>$parents, 'selected' => $productCategory['ProductCategory']['parent_id'] ) );
+?>
             </div>
-		      <?php echo $this->Html->link(__('New Top-Category'), array('action' => 'add', 'e0caa174-2dfe-11e5-a7f8-7ce9d36ef50d'), array('class' => 'btn btn-primary', 'icon' => 'plus white')); ?>
-		      <?php echo $this->Html->link(__('New Sub-Category'), array('action' => 'add', $this->request->data['ProductCategory']['parent_id']), array('class' => 'btn btn-primary', 'icon' => 'plus white')); ?>
+<?php 
+               if (!isset($this->request->data['ProductCategory']['parent_id']))
+		            echo $this->Html->link(__('New Category'), array('action' => 'add', ''), array('class' => 'btn btn-primary', 'icon' => 'plus white'));
+         	   else {
+		            echo $this->Html->link(__('New Top-Category'), array('action' => 'add', null), array('class' => 'btn btn-primary', 'icon' => 'plus white'));
+		            echo $this->Html->link(__('New Sub-Category'), array('action' => 'add', $productCategory['ProductCategory']['parent_id']), array('class' => 'btn btn-primary', 'icon' => 'plus white'));
+		            }
+?>
          </div>
         <br /><br />
 		<?php if (count($productCategories) > 0) : ?>
 			<table class="table table-bordered table-hover table-striped">
 				<thead>
 					<tr>
+						<th class="actions" style="width: 1px"><?php echo __('Move'); ?></th>
 						<th style="width: 200px"><?php echo $this->Paginator->sort('name', __('Name')); ?></th>
 						<th style="width: 200px"><?php echo $this->Paginator->sort('parent_id', __('Parent Category')); ?></th>
-						<th style="width: 20px"><nobr><?php echo $this->Paginator->sort('product_count', __('Product Count')); ?></nobr></th>
-						<th class="actions" style="width: 80px"><?php echo __('Actions'); ?></th>
+						<th style="width: 80px"><nobr><?php echo $this->Paginator->sort('product_count', __('Product Count')); ?></nobr></th>
+						<th class="actions" style="width: 120px"><?php echo __('Actions'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php foreach ($productCategories as $productCategory): ?>
 						<tr>
-							<td><?php echo $this->Html->link($productCategory['ProductCategory']['name'], array('action' => 'index', $productCategory['ProductCategory']['id'])); ?>&nbsp;</td>		
+							<td>
+							   <div class="btn-group">
+							   	<?php echo $this->Html->link(null, array('action' => 'moveup', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-success', 'icon' => 'arrow-up white')); ?>
+									<?php echo $this->Html->link(null, array('action' => 'movedown', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-success', 'icon' => 'arrow-down white')); ?>
+								</div>
+							</td>		
+							<td>
+							   <?php echo $this->Html->link($productCategory['ProductCategory']['name'], array('action' => 'index', $productCategory['ProductCategory']['id'])); ?>
+							   &nbsp;
+							</td>		
 							<td><?php echo $this->Html->link($productCategory['ParentCategory']['name'], array('action' => 'view', $productCategory['ParentCategory']['id'])); ?>&nbsp;</td>		
-							<td><span class="badge badge-info"><?php echo h($productCategory['ProductCategory']['product_count']); ?></span>&nbsp;<?php if ( $productCategory['ProductCategory']['product_count'] > 0 ) { echo $this->Html->link(__('Show'), array('controller' => 'products', 'action' => 'index', $productCategory['ProductCategory']['id'], 'admin' => true), array('class' => 'btn btn-small', 'icon' => 'pencil')); } ?>&nbsp;</td>
+							<td><span class="badge badge-info"><?php echo h($productCategory['ProductCategory']['product_count']); ?></span>&nbsp;
+							   <?php if ( $productCategory['ProductCategory']['product_count'] > 0 ) { ?>
+   								<div class="btn-group pull-right">
+   						         <?php echo $this->Html->link(__('Products'), array('controller' => 'products', 'action' => 'index', $productCategory['ProductCategory']['id'], 'admin' => true), array('class' => 'btn btn-small', 'icon' => 'edit white')); ?>
+   						      </div>   
+							   <?php } ?>
+							     &nbsp;</td>
 							<td class="actions">
-								<div class="btn-group">
-									<?php echo $this->Html->link(null, array('action' => 'edit', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-warning btn-small', 'icon' => 'pencil white')); ?>
+								<div class="btn-group pull-left">
+							   	<?php echo $this->Html->link(null, array('action' => 'moveup', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-success', 'icon' => 'arrow-up white')); ?>
+									<?php echo $this->Html->link(null, array('action' => 'movedown', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-success', 'icon' => 'arrow-down white')); ?>
+								</div>
+								<div class="btn-group pull-right">
+									<?php echo $this->Html->link(null, array('action' => 'edit', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-warning', 'icon' => 'pencil white')); ?>
 									<?php echo $this->Html->link(__('Sub'), array('action' => 'add', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-primary', 'icon' => 'plus white')); ?>
-									<?php echo $this->Form->postLink(null, array('action' => 'delete', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-danger btn-small', 'icon' => 'trash white'), __('Are you sure you want to delete, %s?', $productCategory['ProductCategory']['name'])); ?>
+									<?php echo $this->Form->postLink(null, array('action' => 'delete', $productCategory['ProductCategory']['id']), array('class' => 'btn btn-small btn-danger', 'icon' => 'trash white'), __('Are you sure you want to delete, %s?', $productCategory['ProductCategory']['name'])); ?>
 								</div>
 							</td>
 						</tr>

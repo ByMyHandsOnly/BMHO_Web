@@ -8,6 +8,8 @@ App::uses('AppModel', 'Model');
  * @property Product $Product
  */
 class ProductCategory extends AppModel {
+ var $name = 'ProductCategory';
+ var $actsAs = array('Tree');
 
 /**
  * Display field
@@ -16,9 +18,9 @@ class ProductCategory extends AppModel {
  */
 	public $displayField = 'name';
 
-	public $virtualFields = array(
-		'combine' => 'CONCAT(ProductCategory.name, " (", ProductCategory.product_count, ")")'
-	);
+//	public $virtualFields = array(
+//		'combine' => 'CONCAT(ProductCategory.name, " (", ProductCategory.product_count, ")")'
+//	);
 
 /**
  * Validation rules
@@ -49,8 +51,7 @@ class ProductCategory extends AppModel {
 			'className' => 'ProductCategory',
 			'foreignKey' => 'parent_id',
 			'conditions' => '',
-			'fields' => array('ParentCategory.id', 'CONCAT(ParentCategory.name, " (", ParentCategory.product_count, ")") as combine', 'ParentCategory.parent_id', 'ParentCategory.name', 'ParentCategory.slug', 'ParentCategory.product_count'),
-			'order' => 'ParentCategory.name ASC',
+			'order' => 'ProductCategory.lft ASC',
 			'counterCache' => true,
 	   ),
   );
@@ -167,7 +168,7 @@ class ProductCategory extends AppModel {
 		$temp = array();
 
 		foreach ($categories as $category) {
-			$temp[$category['ProductCategory']['name'] . ' (' . $category[0]['count_products'] . ')'] = $category['ProductCategory']['slug'];
+			$temp[$category['ProductCategory']['name'] . ' (' . $category['ProductCategory']['count_products'] . ')'] = $category['ProductCategory']['slug'];
 		}
 
 		return $temp;
@@ -177,7 +178,7 @@ class ProductCategory extends AppModel {
 		$this->recursive = -1;
 		
 		$categories = $this->find('all', array(
-			'fields' => array('ProductCategory.id', 'ProductCategory.parent_id', 'ProductCategory.name', 'ProductCategory.slug', $virtualfields['combine'] ),
+			'fields' => array('ProductCategory.id', 'ProductCategory.parent_id', 'ProductCategory.name', 'ProductCategory.slug' ),
 			'conditions' => array('ProductCategory.parent_id' => $id),
 			'order' => array('ProductCategory.name ASC'),
 			'limit' => 10
@@ -190,7 +191,7 @@ class ProductCategory extends AppModel {
 		$this->recursive = -1;
 		
 		$categories = $this->find('all', array(
-			'fields' => array('ProductCategory.id', 'ProductCategory.parent_id', 'ProductCategory.name', 'ProductCategory.slug', $virtualfields['combine'] ),
+			'fields' => array('ProductCategory.id', 'ProductCategory.parent_id', 'ProductCategory.name', 'ProductCategory.slug' ),
 			'conditions' => array('ProductCategory.parent_id' => $id),
 			'order' => array('ProductCategory.name ASC'),
 			'limit' => 10

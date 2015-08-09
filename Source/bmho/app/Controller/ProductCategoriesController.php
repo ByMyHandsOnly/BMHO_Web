@@ -7,13 +7,37 @@ App::uses('AppController', 'Controller');
  */
 class ProductCategoriesController extends AppController {
 	
+    var $helpers = array('Tools.Tree');
+
 	 public $paginate = array(
         'limit' => 10,
         'order' => array(
-            'ProductCategory.name' => 'asc'
+            'ProductCategory.lft' => 'asc'
         )
     );
 
+public function index($id=null) {
+		$this->ProductCategory->recursive = 2;
+
+  // if it's ajax, set ajax layout
+  if (!empty($this->params['named']['isAjax']))
+   $this->layout = 'ajax';
+   
+   if ($id==null) {
+      $productCategories = $this->ProductCategory->find('threaded');
+      }
+   else {
+      $productCategory = $this->ProductCategory->read(null, $id);
+      $parentCategory = $this->ProductCategory->ParentCategory->read(null, $parent_id);
+      $productCategories = $this->ProductCategory->children($id);
+      }
+   
+//   $categories = $this->Category->generateTreeList(null, null, null, '&nbsp;&nbsp;&nbsp;');
+//   $currentCategory = $categories;
+   $this->set(compact('productCategories'));    
+   }
+
+	
 /**
  * admin_index method
  *
@@ -21,37 +45,61 @@ class ProductCategoriesController extends AppController {
  */
 	public function admin_index($product_category_id=null) {
 		$this->ProductCategory->recursive = 2;
-		
-		if (!empty($product_category_id)) {
-			$this->paginate = array(
-				'conditions' => array('ProductCategory.parent_id' => $product_category_id),
-				'order' => array('ProductCategory.name' => 'ASC'),
-				'limit' => 10
-			);
+		// special handling for ALL items, TOP items, Parent items:
+		// if null comes in, change to empty '' and show ALL
+		if ($product_category_id!=null)) {
+		   // if empty comes in, change to null, and show TOP
+		   if ($product_category_id=='') {
+		         $product_category_id=null;
+		      }
+		   else {
+		      }
+		      
+         $this->ProductCategory->id = $product_category_id;
+         if  ($this->ProductCategory->exists()) {
+         
+		      $this->paginate = array(
+			      'conditions' => array('ProductCategory.parent_id' => $product_category_id),
+			      'order' => array('ProductCategory.lft' => 'ASC'),
+			      'limit' => 10
+		      );
 
-		$this->request->data = $this->ProductCategory->read(null, $product_category_id);
-		$this->set('ProductCategory', $this->ProductCategory->read(null, $product_category_id));
-		//	$this->request->data['ProductCategory']['parent_id'] = $product_category_id;
-		} else {
+      //		   $subCategories = $this->ProductCategory->children($product_category_id);
+      //		   $this->set('subCategories', $subCategories );
+
+	         $productCategory = $this->ProductCategory->read(null, $product_category_id);
+	         $parentCategory = $this->ProductCategory->read(null, $productCategory['ProductCategory']['parent_id']);
+	   //      $this->request->data = $curCategory;
+		      $this->set('ProductCategory', $productCategory);
+		      $this->set('ParentCategory', $parentCategory);
+        	   $this->request->data['ProductCategory']['parent_id'] = $product_category_id;
+		      }
+		   else {
+				$this->Session->setFlash(__('The category was not found'), 'flash_error');
+   		   $this->redirect(array('action' => 'index', '' ));
+		      }
+		   }
+		else {
 			$this->paginate = array(
-				'order' => 'ProductCategory.name ASC',
+				'order' => 'ProductCategory.lft ASC',
 				'limit' => 10
 			);
 		}
-		$productCategories = $this->paginate();
-		$this->set('productCategories', $productCategories);
 
-      foreach( $productCategories as $sub ) {
-         $subCategories = $this->ProductCategory->getSubCategories( $sub['id'] );
-         $sub['count_children']=$subCategories->count;
-      }
-      
 		$parentCategories = $this->ProductCategory->ParentCategory->find('list');
 		$this->set('parentCategories', $parentCategories);
 
-//		$this->parentCategories('set', $parentCategories);
-//		$productCategories = $this->ProductCategory->ProductCategory->find('list');
-//		$this->set('productCategories', $productCategories);
+		$parents = $this->ProductCategory->ParentCategory->generateTreeList(null,null,null,"--- ");
+		$this->set('parents', $parents);
+
+		$productCategories = $this->paginate();
+		$this->set('productCategories', $productCategories);
+
+//      foreach( $parentCategories as $sub ) {
+//         $subCategories = $this->ProductCategory->children( $sub['ProductCategory']['id'] );
+//         $sub['ProductCategory']['count_children']=$subCategories->count;
+//      }
+      
 	}
 
 /**
@@ -69,14 +117,15 @@ class ProductCategoriesController extends AppController {
 			throw new NotFoundException(__('Invalid product category'));
 		}
 		
-		$productCategories = $this->ProductCategory->find('all');
-		$this->set('productCategories', $productCategories);
-      
-		$parentCategories = $this->ProductCategory->ParentCategory->find('list');
+		$parentCategories = $this->ProductCategory->ParentCategory->generateTreeList(null,null,null,"--- ");
 		$this->set('parentCategories', $parentCategories);
 
-		$subCategories = $this->ProductCategory->getSubCategories($id);
+		$subCategories = $this->ProductCategory->children($id);
 		$this->set('subCategories', $subCategories );
+
+		$productCategories = $this->ProductCategory->find('threaded');
+		$this->set('productCategories', $productCategories);
+      
 		
 //		$this->request->data = $this->ProductCategory->read(null, $id);
 //		$this->set('ProductCategory', $this->ProductCategory->read(null, $id));
@@ -121,16 +170,12 @@ class ProductCategoriesController extends AppController {
  */
 	public function admin_add($parent_id = null) {
 	   $this->ProductCategory->recursive = 2;
-	   if (empty($parent_id)) {
-         $parent_id = 'e0caa174-2dfe-11e5-a7f8-7ce9d36ef50d';
-         }
-      $this->request->data['ProductCategory']['parent_id'] = $parent_id;
+	   $this->request->data['ProductCategory']['parent_id'] = $parent_id;
       $this->set('ProductCategory', $this->request->data);
       $this->ProductCategory->parent_id = $parent_id;
       
-		$parentCategories = $this->ProductCategory->ParentCategory->find('list');
+		$parentCategories = $this->ProductCategory->ParentCategory->generateTreeList(null,null,null,"--- ");
 		$this->set('parentCategories', $parentCategories);
-		$this->set('parent_id', $parentCategories );
    
 		$productCategories = $this->ProductCategory->find('all');
 		$this->set('productCategories', $productCategories);
@@ -199,13 +244,13 @@ class ProductCategoriesController extends AppController {
 		//$parentCategories = $this->ProductCategory->ParentCategory->find('list', array('order' => 'ParentCategory.name ASC'));
 	   //$this->set('parentCategories', $parentCategories);
 
-		$productCategories = $this->ProductCategory->find('all');
+		$productCategories = $this->ProductCategory->find('threaded');
 		$this->set('productCategories', $productCategories);
 
 		$parentCategories = $this->ProductCategory->ParentCategory->find('list');
 		$this->set('parentCategories', $parentCategories);
 
-		$subCategories = $this->ProductCategory->getSubCategories($id);
+		$subCategories = $this->ProductCategory->children($id);
 		$this->set('subCategories', $subCategories );
    }
 
@@ -215,9 +260,10 @@ class ProductCategoriesController extends AppController {
  * @throws MethodNotAllowedException
  * @throws NotFoundException
  * @param string $id
+ * @param boolean $prune : true to delete children, false to promote children up
  * @return void
  */
-	public function admin_delete($id = null) {
+	public function admin_delete($id = null, $prune=false) {
 		if (!$this->request->is('post')) {
 			throw new MethodNotAllowedException();
 		}
@@ -225,11 +271,62 @@ class ProductCategoriesController extends AppController {
 		if (!$this->ProductCategory->exists()) {
 			throw new NotFoundException(__('Invalid product category'));
 		}
-		if ($this->ProductCategory->delete()) {
-			$this->Session->setFlash(__('Product category deleted'), 'flash_success');
+		
+		if ($this->ProductCategory->removeFromTree($prune)) {
+		   if ( $prune )
+			   $this->Session->setFlash(__('Product category and sub-categories deleted'), 'flash_success');
+			else
+			   $this->Session->setFlash(__('Product category deleted, sub-categories promoted to parent'), 'flash_success');
+			      
 			$this->redirect(array('action' => 'index'));
 		}
 		$this->Session->setFlash(__('Product category was not deleted'));
 		$this->redirect(array('action' => 'index'));
 	}
+
+/**
+ * admin_moveup method
+ *
+ * @throws MethodNotAllowedException
+ * @throws NotFoundException
+ * @param string $id
+ * @return void
+ */
+	public function admin_moveup($product_category_id=null) {
+		$this->ProductCategory->id = $product_category_id;
+		if (!$this->ProductCategory->exists()) {
+			throw new NotFoundException(__('Invalid product category'));
+		}
+		
+      if ( $this->ProductCategory->moveUp($product_category_id) )
+		   $this->Session->setFlash(__('Product category moved up'), 'flash_success');
+		else
+			$this->Session->setFlash(__('Product category was not moved'), 'flash_error');
+
+		$this->redirect(array('action' => 'index'));
+   }
+
+/**
+ * admin_movedown method
+ *
+ * @throws MethodNotAllowedException
+ * @throws NotFoundException
+ * @param string $id
+ * @return void
+ */
+	public function admin_movedown($product_category_id=null) {
+		$this->ProductCategory->id = $product_category_id;
+		if (!$this->ProductCategory->exists()) {
+			throw new NotFoundException(__('Invalid product category'));
+		}
+		
+      if ( $this->ProductCategory->moveDown($product_category_id) )
+		   $this->Session->setFlash(__('Product category moved down'), 'flash_success');
+		else
+			$this->Session->setFlash(__('Product category was not moved'), 'flash_error');
+
+		$this->redirect(array('action' => 'index'));
+   }
+   
 }
+
