@@ -219,3 +219,4 @@ CakePlugin::load('TwitterBootstrap');
 CakePlugin::load('Search');
 CakePlugin::load('DebugKit');
 CakePlugin::load('Uploader');
+CakePlugin::load('Tools');

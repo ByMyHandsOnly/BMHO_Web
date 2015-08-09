@@ -26,8 +26,8 @@
 	      <?php endif; ?>
       </td>
       <td valign="top">
-         <div class="hero-unit" style="position:relative; min-height: 115px;line-height: 10px;background-image: url('files/pottery-making-small.jpg'); background-repeat: no-repeat; background-position: left top">
 <!--
+         <div class="hero-unit" style="position:relative; min-height: 115px;line-height: 10px;background-image: url('files/pottery-making-small.jpg'); background-repeat: no-repeat; background-position: left top">
         <img style="position: absolute; top: 0; right: 15px;" src="<?php echo $this->webroot . 'img/ribbon-free.jpg'; ?>"/>
 -->		
         	   <div style="text-align: right">
@@ -40,7 +40,5 @@
 </table>
 </div>
 
-<div class="row-fluid">
-</div>
 
 <?php echo $this->element('products'); ?>

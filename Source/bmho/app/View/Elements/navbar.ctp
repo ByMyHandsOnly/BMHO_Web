@@ -1,7 +1,11 @@
-<div class="hero-unit" style="position:relative; min-height: 0px;line-height: 10px;background-image: url(<?php echo Configure::read('MyApp.banner'); ?>); background-repeat: no-repeat; background-position: left top">
-
 <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </a>
         <div class="container">
             <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
                 <span class="icon-bar"></span>
@@ -33,16 +37,19 @@
 									</li>
 								</ul>
 							</li>
-						<?php else : ?>
+						<?php else : ?> &nbsp;
+<!--
 							<li>
 								<div class="btn-group">
 									<a class="btn btn-info" href="<?php echo $this->webroot . 'manager/shops/register'; ?>"><i class="icon-shopping-cart icon-white"></i> <?php echo __('Sell'); ?></a>
-                           <a href="#" class="btn btn-info btn-large"><i class="icon-white icon-star"></i> Free Trial - 1 Item / 1 MonthS</a>						
+                           <a href="#" class="btn btn-info btn-large"><i class="icon-white icon-star"></i> Try Free!<hr><br>1 Item<br>1 Month</a>						
                            <a href="#" class="btn btn-primary btn-large"><i class="icon-white icon-star"></i> Basic - 1 Item / $1 / 1 Mo.</a>
                            <a href="#" class="btn btn-success btn-large"><i class="icon-white icon-star"></i> Basic Plus - 10 Items /  $10 / 10 Months.</a>
                            <a href="#" class="btn btn-warning btn-large"><i class="icon-white icon-star"></i> Premium - Unl Items /  $50 / Months.</a>
+								
 								</div>
 							</li>
+-->									
 						<?php endif; ?>
 					<?php endif; ?>
 
@@ -85,6 +92,15 @@
     </div>
 </div>
 
+<div class="pull-left" >
+   <div class="hero-unit" style="position:relative; min-height: 0px; min-width: 200px; line-height: 10px;background-image: url(<?php echo Router::Url( '/', true ) . Configure::read('MyApp.banner'); ?>); background-repeat: no-repeat; background-position: left top">
+   </div>
+</div>
+<div class="pull-right">
+   <a href="#" class="btn btn-primary btn-small" style="width:160px"><div class="pull-left"><i class="icon-white icon-shopping-cart" style="align: left"></i></div> Basic <div class="pull-right"> $1/month </div> </a><br>
+   <a href="#" class="btn btn-warning btn-small" style="width:160px"><div class="pull-left"><i class="icon-white icon-plus" style="align: left"></i></div> Basic Plus <div class="pull-right"> $5/month </div> </a><br>
+   <a href="#" class="btn btn-success btn-small" style="width:160px"><div class="pull-left"><i class="icon-white icon-star" style="align: left"></i></div> Premium <div class="pull-right">$10/month </div> </a>
+</div>
 <?php $this->start('scriptBottom'); ?>
 <script>
 //	$(document).ready(function() {
